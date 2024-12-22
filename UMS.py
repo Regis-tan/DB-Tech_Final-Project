@@ -12,7 +12,7 @@ connection = mysql.connector.connect(
 
 #PARAMETERS
 HEIGHT = 500
-WIDTH = 900
+WIDTH = 850
 TITLE = "UMS - Admin"
 CLR_BACKGROUND = "#fcfafd"
 CLR_PRIMARY = "#00dfa2"
@@ -28,14 +28,14 @@ APP.title(TITLE)
 #BUDGET INFORMATION SCHEMA
 #note for later: [column name, name sake]
 COLUMN_INFO = {
-    "CLASS_COL": [["clsId", "ID"], ["staId", "Lecturer ID"], ["crsId", "Course ID"]],
-    "COURSE_COL": [["crsId", "ID"], ["crsName", "Course Name"], ["credit", "Credit"]],
-    "DEPARTMENT_COL": [["depId", "ID"], ["depName", "Dept. Name"]],
-    "ENROLLMENT_COL": [["enrId", "ID"], ["clsId", "Class ID"], ["stuId", "Student ID"], ["enrDate", "Enroll Date"], ["grade", "Grade"]],
-    "PROGRAM_COL": [["prgId", "ID"], ["prgName", "Prog. Name"], ["depId", "Dept. ID"], ["degree", "Degree"]],
-    "SCHEDULE_COL": [["schId", "ID"], ["enrId", "Enroll ID"], ["day", "Day"], ["time", "Time"]],
-    "STAFF_COL": [["staId", "ID"], ["depId", "Dept. ID"], ["name", "Name"], ["position", "Position"], ["DOB", "DOB"], ["gender", "Gender"], ["phoneNo", "Phone No."]],
-    "STUDENT_COL": [["stuId", "ID"], ["name", "Name"], ["gender", "Gender"], ["prgId", "Prog. Id"], ["DOB", "DOB"], ["entryDate", "Entry Date"], ["phoneNo", "Phone No."], ["email", "E-mail"]]
+    "CLASS_COL": [["classId", "Class ID"], ["staffId", "Lecturer ID"], ["courseId", "Course ID"]],
+    "COURSE_COL": [["courseId", "Course ID"], ["courseName", "Course Name"], ["credit", "Credit"]],
+    "DEPARTMENT_COL": [["departmentId", "Dept. ID"], ["departmentName", "Dept. Name"]],
+    "ENROLLMENT_COL": [["enrollId", "Enroll ID"], ["classId", "Class ID"], ["studentId", "Student ID"], ["enrollDate", "Enroll Date"], ["enrollAvailable", "Available Enroll Date"]],
+    "PROGRAM_COL": [["programId", "Prog. ID"], ["programName", "Prog. Name"], ["departmentId", "Dept. ID"], ["degree", "Degree"]],
+    "SCHEDULE_COL": [["scheduleId", "Schedule ID"], ["enrollId", "Enroll ID"], ["day", "Day"], ["time", "Time"]],
+    "STAFF_COL": [["staffId", "Staff ID"], ["departmentId", "Dept. ID"], ["staffName", "Staff Name"], ["position", "Position"], ["DOB", "DOB"], ["gender", "Gender"], ["phoneNo", "Phone No."]],
+    "STUDENT_COL": [["studentId", "Student ID"], ["studentName", "Student Name"], ["gender", "Gender"], ["programId", "Prog. Id"], ["DOB", "DOB"], ["entryDate", "Entry Date"],  ["phoneNo", "Phone No."], ["email", "E-mail"], ["gpa", "GPA"]]
 }
 
 global CURRENT_TABLE
@@ -62,7 +62,8 @@ def set_form_delete():
             cursor.execute(f"DELETE FROM {CURRENT_TABLE.lower()} WHERE {pk} = {id}")
             connection.commit()
         except Exception as e:
-            print(f"Error Occured: {e}")
+            debug_label = TK.CTkLabel(INPUT_FRAME, text=e, font=("Arial", 10), wraplength=180, justify="left", text_color="red")
+            debug_label.pack(anchor="nw", padx=10, pady=10)
         finally:
             cursor.close()
 
@@ -93,7 +94,11 @@ def set_form_add():
                 int(entry.get())
                 entry_outputs.append(entry.get())
             except:
-                entry_outputs.append(f'"{entry.get()}"')
+                try:
+                    float(entry.get())
+                    entry_outputs.append(entry.get())
+                except:
+                    entry_outputs.append(f'"{entry.get()}"')
 
             try:
                 entry.delete(0, "end")
@@ -109,7 +114,8 @@ def set_form_add():
             cursor.execute(f'INSERT INTO {CURRENT_TABLE.lower()}({string_cols}) VALUES({string_outs});')
             connection.commit()
         except Exception as e:
-            print(f"Error Occured: {e}")
+            debug_label = TK.CTkLabel(INPUT_FRAME, text=e, font=("Arial", 10), wraplength=180, justify="left", text_color="red")
+            debug_label.pack(anchor="nw", padx=10, pady=10)
         finally:
             cursor.close()
 
@@ -167,7 +173,8 @@ def set_form_update():
             cursor.execute(f"UPDATE {CURRENT_TABLE.lower()} SET {joined_set_values} WHERE {column_name[0]} = {entry_outputs[0]};")
             connection.commit()
         except Exception as e:
-            print(f"Error Occured: {e}")
+            debug_label = TK.CTkLabel(INPUT_FRAME, text=e, font=("Arial", 10), wraplength=180, justify="left", text_color="red")
+            debug_label.pack(anchor="nw", padx=10, pady=10)
         finally:
             cursor.close()
 
@@ -268,7 +275,7 @@ def search_table(id):
 
 #UI
 SIDEBAR = TK.CTkFrame(APP, width=250, corner_radius=0, border_color="black", border_width=1, fg_color=CLR_PRIMARY)
-username = TK.CTkLabel(SIDEBAR, text="User:\nPLACEHOLDER\nAdmin", font=("Arial", 20, "bold"), text_color=CLR_TEXT, justify="left")
+username = TK.CTkLabel(SIDEBAR, text="User:\nPlaceholder\nAdmin", font=("Arial", 20, "bold"), text_color=CLR_TEXT, justify="left")
 sidebar_seperator = TK.CTkFrame(SIDEBAR, width=200, height=1, bg_color="black")
 
 INPUT_FRAME = TK.CTkScrollableFrame(SIDEBAR, width=220, height=350, fg_color=CLR_TERTIARY)
@@ -282,7 +289,8 @@ refresh_button = TK.CTkButton(OPTION_FRAME, fg_color=CLR_PRIMARY, text="Refresh"
 search_button = TK.CTkButton(OPTION_FRAME, fg_color=CLR_PRIMARY, text=">", font=("Arial", 18, "bold"), text_color=CLR_TEXT, width=30, hover_color=CLR_TERTIARY, command=lambda:search_table(search_row.get()))
 search_row = TK.CTkEntry(OPTION_FRAME, width=100, placeholder_text="Search by ID", corner_radius=5, fg_color=CLR_SECONDARY, text_color=CLR_TEXT, border_color=CLR_PRIMARY)
 
-TABLE_FRAME = TK.CTkScrollableFrame(APP, fg_color=CLR_SECONDARY, width=600, height=400)
+H_FRAME = TK.CTkScrollableFrame(APP, orientation="horizontal", fg_color=CLR_SECONDARY, width=650, height=400)
+TABLE_FRAME = TK.CTkScrollableFrame(H_FRAME, fg_color=CLR_SECONDARY, width = 800)
 
 #PACKING
 SIDEBAR.pack(side="left", fill="y")
@@ -304,7 +312,8 @@ refresh_button.pack(side="left", padx=5)
 search_button.pack(side="right")
 search_row.pack(side="right", padx=(30, 1))
 
-TABLE_FRAME.pack(anchor="nw", padx=20, pady=10)
+H_FRAME.pack(anchor="nw", padx=20, pady=10)
+TABLE_FRAME.pack(anchor="center")
 
 update_table(CURRENT_TABLE)
 update_form(CURRENT_FORM)
